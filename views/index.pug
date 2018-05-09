@@ -1,0 +1,26 @@
+extends layout
+
+block append css
+  if ENV_DEVELOPMENT
+    link(rel="stylesheet", href="//cdn.bootcss.com/bootstrap/3.3.7/css/bootstrap.css")
+  else
+    link(rel="stylesheet", href="//cdn.bootcss.com/bootstrap/3.3.7/css/bootstrap.min.css")
+
+block append js
+  if ENV_DEVELOPMENT
+    script(src="//cdn.bootcss.com/jquery/3.2.1/jquery.js")
+    script(src="//cdn.bootcss.com/bootstrap/3.3.7/js/bootstrap.js")
+  else
+    script(src="//cdn.bootcss.com/jquery/3.2.1/jquery.min.js")
+    script(src="//cdn.bootcss.com/bootstrap/3.3.7/js/bootstrap.min.js")
+
+block content
+  block page
+  div(style='height:60px')
+  footer.footer
+    div.container
+      span(style='float:left;margin:20px 0px')
+        a(href='mailto:sales@bookingme.cc',target='_blank')
+          small 联系邮箱
+      span.text-muted(style='float:right')
+        small 沪ICP备16016548号

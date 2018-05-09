@@ -1,0 +1,25 @@
+{
+    "extends": "eslint:recommended",
+    "env": {
+        "browser": true,
+        "commonjs": true,
+        "jquery": true
+    },
+    "globals": {
+        "moment": true,
+        "bootbox": true,
+        "echarts": true,
+        "Vue": true,
+        "i18next": true
+    },
+    "rules": {
+        "no-console": "off",
+        "no-redeclare": "off",
+        "no-unused-vars": ["error", {
+                "vars": "all",
+                "args": "none",
+                "ignoreRestSiblings": false
+            }
+        ]
+    }
+}

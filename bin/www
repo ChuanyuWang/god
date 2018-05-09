@@ -1,0 +1,37 @@
+#!/usr/bin/env node
+var app = require('../app');
+
+if (app.get('env') === 'production') {
+    var https = require('https');
+    var fs = require('fs');
+
+    var hskey = fs.readFileSync('bin/214590170330859.key');
+    var hscert = fs.readFileSync('bin/214590170330859.pem')
+    var options = {
+        key: hskey,
+        cert: hscert
+    };
+    
+    app.set('port', process.env.PORT || 443);
+    var server = https.createServer(options, app).listen(app.get('port'), function() {
+      console.log('Express server listening on port ' + server.address().port);
+      // send event "ready" to external process manager tool (PM2)
+      // So that the application process is considered as online status
+      //process.send('ready');
+    });
+} else {
+    var http = require('http');
+    app.set('port', process.env.PORT || 3000);
+    var server = http.createServer(app).listen(app.get('port'), function() {
+      console.log('Express server listening on port ' + server.address().port);
+      // send event "ready" to external process manager tool (PM2)
+      // So that the application process is considered as online status
+      //process.send('ready');
+    });
+}
+
+/*
+var server = app.listen(app.get('port'), function() {
+  console.log('Express server listening on port ' + server.address().port);
+});
+*/

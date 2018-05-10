@@ -15,6 +15,8 @@ module.exports = {
         bootstrap_table_css : '//cdn.bootcss.com/bootstrap-table/1.12.1/bootstrap-table.min.css',
         bootstrap_table : '//cdn.bootcss.com/bootstrap-table/1.12.1/bootstrap-table.min.js',
         bootstrap_table_locale_zh_CN : '//cdn.bootcss.com/bootstrap-table/1.12.1/locale/bootstrap-table-zh-CN.min.js',
-        bootbox : '//cdn.bootcss.com/bootbox.js/4.4.0/bootbox.min.js'
+        bootbox : '//cdn.bootcss.com/bootbox.js/4.4.0/bootbox.min.js',
+        moment: '//cdn.bootcss.com/moment.js/2.22.1/moment-with-locales.min.js',
+        moment_dev: '//cdn.bootcss.com/moment.js/2.22.1/moment-with-locales.js'
     }
 };

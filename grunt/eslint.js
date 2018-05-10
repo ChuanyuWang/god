@@ -9,7 +9,7 @@ module.exports = {
     },
     nodeFiles: {
         files: {
-            src: ['routes/**/*.js']
+            src: ['routes/**/*.js','*.js']
         },
         options: {
             configFile: 'conf/node.json',

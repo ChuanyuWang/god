@@ -7,7 +7,7 @@ var logger = require('morgan');
 //var cookieParser = require('cookie-parser');
 const session = require('express-session');
 const MongoStore = require('connect-mongo')(session);
-var flash = require('connect-flash');
+//var flash = require('connect-flash');
 var config = require('./config');
 var i18n = require('i18n');
 

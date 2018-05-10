@@ -52,13 +52,4 @@ helpers.connect3 = function(database) {
     return conn;
 };
 
-function findConnection(databaseName, connections) {
-    for (var i = 0; i < connections.length; i++) {
-        if (databaseName == connections[i].name) {
-            return connections[i].db;
-        }
-    }
-    return null;
-};
-
 module.exports = helpers;

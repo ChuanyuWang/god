@@ -5,6 +5,7 @@ var router = express.Router();
 var RateLimit = require('express-rate-limit');
 var credentials = require('../credentials');
 var connectionMgr = require('../util');
+var assert = require('assert');
 
 var wxConfig = {
     AppID: credentials.AppID,
@@ -74,15 +75,85 @@ router.get('/wx/getCode', function(req, res, next) {
  */
 router.post('/wx/creategame', function(req, res, next) {
     var game_options = req.body || {};
+    var newRoom = generateRoomID();
 
     var games = connectionMgr.connect('lyingman').get('games');
-    games.find({
-        status: 'started'
-    }).then(function(items) {
-        console.log(items);
+    games.findOne({
+        status: 'started',
+        room: newRoom
+    }).then(function(doc) {
+        if (doc) throw new Error('Bad luck, room is occupied. Try again later~');
+        return createRoom(newRoom, game_options);
+    }).then(function(room) {
+        return games.insert(room);
+    }).then(function(room) {
+        res.json(room);
+    }).catch(function(err) {
+        var error = new Error('create game fails');
+        error.innerError = err;
+        next(error)
     });
-
-    res.json(game_options);
 });
+
+function createRoom(roomID, gameOptions) {
+    var players = [];
+    for (var i=1;i<=gameOptions.player_number;i++) {
+        players.push({
+            seat: i,
+            role: null,
+            openid: '',
+            nickname: '',
+            avatar: ''
+        });
+    }
+    var roles = [];
+    for (var i=0;i<gameOptions.wolf_number;i++) {
+        if (gameOptions.wolf_roles[i]) {
+            roles.push({
+                role: gameOptions.wolf_roles[i].value,
+                name: gameOptions.wolf_roles[i].name,
+                isMutant: false,
+                isGood: false
+            })
+        } else {
+            roles.push({
+                role: 'werewolf',
+                name: '狼人',
+                isMutant: false,
+                isGood: false
+            })
+        }
+    }
+
+    for (var i=0;i<gameOptions.villager_number;i++) {
+        roles.push({
+            role: 'villager',
+            name: '普通村民',
+            isMutant: false,
+            isGood: true
+        })
+    }
+
+    for (var i=0;i<gameOptions.roles.length;i++) {
+        roles.push({
+            role: gameOptions.roles[i].value,
+            name: gameOptions.roles[i].name,
+            isMutant: true,
+            isGood: true
+        })
+    }
+
+    assert(roles.length === players.length);
+    return {
+        room: roomID,
+        players: players,
+        roles: roles,
+        options: gameOptions.options
+    }
+}
+
+function generateRoomID() {
+    return parseInt(Math.random()*10000);
+}
 
 module.exports = router;

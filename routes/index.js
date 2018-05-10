@@ -13,18 +13,18 @@ var wxConfig = {
 };
 
 var loginLimiter = new RateLimit({
-    windowMs: 1000*60, // 1 minutes
+    windowMs: 1000 * 60, // 1 minutes
     max: 5, // limit each IP to 10 requests per windowMs
     delayMs: 0, // disable delaying - full speed until the max limit is reached
     // Error message returned when max is exceeded.
     message: "Too many login requests, please try again later."
-  });
+});
 
 /* GET home page. */
-router.get('/', loginLimiter, function (req, res) {
+router.get('/', loginLimiter, function(req, res) {
     res.render('index', {
-        title : res.__('title'),
-        navTitle : res.__('title')
+        title: res.__('title'),
+        navTitle: res.__('title')
     });
 });
 
@@ -34,7 +34,7 @@ router.get('/', loginLimiter, function (req, res) {
 router.get('/wx/getCode', function(req, res, next) {
     var code = req.query.code || '';
     var urlStr = 'https://api.weixin.qq.com/sns/jscode2session?appid=' + wxConfig.AppID + '&secret=' + wxConfig.Secret + '&js_code=' + code + '&grant_type=authorization_code';
-    request(urlStr, function (error, response, body) {
+    request(urlStr, function(error, response, body) {
         if (!error) {
             res.end(body);
         } else {
@@ -155,7 +155,7 @@ router.post('/wx/creategame', function(req, res, next) {
 function createRoom(roomID, gameOptions) {
     assert(gameOptions.judge);
     var players = [];
-    for (var i=1;i<=gameOptions.player_number;i++) {
+    for (var i = 1; i <= gameOptions.player_number; i++) {
         players.push({
             seat: i,
             role: null,
@@ -165,7 +165,7 @@ function createRoom(roomID, gameOptions) {
         });
     }
     var roles = [];
-    for (var i=0;i<gameOptions.wolf_number;i++) {
+    for (var i = 0; i < gameOptions.wolf_number; i++) {
         if (gameOptions.wolf_roles[i]) {
             roles.push({
                 role: gameOptions.wolf_roles[i].value,
@@ -183,7 +183,7 @@ function createRoom(roomID, gameOptions) {
         }
     }
 
-    for (var i=0;i<gameOptions.villager_number;i++) {
+    for (var i = 0; i < gameOptions.villager_number; i++) {
         roles.push({
             role: 'villager',
             name: '普通村民',
@@ -192,7 +192,7 @@ function createRoom(roomID, gameOptions) {
         })
     }
 
-    for (var i=0;i<gameOptions.roles.length;i++) {
+    for (var i = 0; i < gameOptions.roles.length; i++) {
         roles.push({
             role: gameOptions.roles[i].value,
             name: gameOptions.roles[i].name,
@@ -214,7 +214,7 @@ function createRoom(roomID, gameOptions) {
 }
 
 function generateRoomID() {
-    return parseInt(Math.random()*10000);
+    return parseInt(Math.random() * 10000);
 }
 
 module.exports = router;

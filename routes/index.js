@@ -149,8 +149,8 @@ router.post('/wx/creategame', function(req, res, next) {
         "witch_save_on_first_night": false
     }
 }
- * @param {*} roomID 
- * @param {*} gameOptions 
+ * @param {Integer} roomID room number from 0 - 9999
+ * @param {Object} gameOptions game options object
  */
 function createRoom(roomID, gameOptions) {
     assert(gameOptions.judge);

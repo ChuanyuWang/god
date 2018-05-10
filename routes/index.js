@@ -69,7 +69,8 @@ router.get('/wx/getCode', function(req, res, next) {
     ],
     "options": {
         "witch_save_on_first_night": false
-    }
+    },
+    "judge": "<openid>"
 }
 
  */
@@ -87,7 +88,7 @@ router.post('/wx/creategame', function(req, res, next) {
     }).then(function(room) {
         return games.insert(room);
     }).then(function(room) {
-        res.json(room);
+        res.json(room.room);
     }).catch(function(err) {
         var error = new Error('create game fails');
         error.innerError = err;
@@ -95,7 +96,64 @@ router.post('/wx/creategame', function(req, res, next) {
     });
 });
 
+/**
+ * Create game object in games collection, e.g. 
+ * {
+    "_id": ObjectID("5af450d4e9966b48a044237b"),
+    "room": 1883,
+    "judge": "ocx7i5H6DoT9QS3UJGdv0jVp0dJ0",
+    "status": "started",
+    "next": "start",
+    "players": [
+        {
+            "seat": 1,
+            "role": null,
+            "openid": "",
+            "nickname": "",
+            "avatar": ""
+        },
+        {
+            "seat": 2,
+            "role": null,
+            "openid": "",
+            "nickname": "",
+            "avatar": ""
+        },
+        {
+            "seat": 3,
+            "role": null,
+            "openid": "",
+            "nickname": "",
+            "avatar": ""
+        }
+    ],
+    "roles": [{
+            "role": "werewolf",
+            "name": "狼人",
+            "isMutant": false,
+            "isGood": false
+        },
+        {
+            "role": "villager",
+            "name": "普通村民",
+            "isMutant": false,
+            "isGood": true
+        },
+        {
+            "role": "seer",
+            "name": "预言家",
+            "isMutant": true,
+            "isGood": true
+    }],
+    "options": {
+        "witch_save_on_first_night": false
+    }
+}
+ * @param {*} roomID 
+ * @param {*} gameOptions 
+ */
 function createRoom(roomID, gameOptions) {
+    assert(gameOptions.judge);
     var players = [];
     for (var i=1;i<=gameOptions.player_number;i++) {
         players.push({
@@ -146,6 +204,9 @@ function createRoom(roomID, gameOptions) {
     assert(roles.length === players.length);
     return {
         room: roomID,
+        judge: gameOptions.judge,
+        status: 'started',
+        next: 'start',
         players: players,
         roles: roles,
         options: gameOptions.options

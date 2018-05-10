@@ -4,6 +4,7 @@ var router = express.Router();
 //var util = require('../util');
 var RateLimit = require('express-rate-limit');
 var credentials = require('../credentials');
+var connectionMgr = require('../util');
 
 var wxConfig = {
     AppID: credentials.AppID,
@@ -73,6 +74,14 @@ router.get('/wx/getCode', function(req, res, next) {
  */
 router.post('/wx/creategame', function(req, res, next) {
     var game_options = req.body || {};
+
+    var games = connectionMgr.connect('lyingman').get('games');
+    games.find({
+        status: 'started'
+    }).then(function(items) {
+        console.log(items);
+    });
+
     res.json(game_options);
 });
 

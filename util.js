@@ -19,7 +19,7 @@ helpers.connectionURI = function(database) {
  * @param {String} database name of database to be connected
  * @returns connection created by `monk(uri, options)`
  */
-helpers.connect3 = function(database) {
+helpers.connect = function(database) {
     if (typeof database != "string" || database.length == 0) {
         throw new Error("parameter database is not string or empty");
     }

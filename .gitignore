@@ -1,6 +1,7 @@
 node_modules/
 .sass-cache
 logs/
+public/js
 config.db.js
 credentials.js
 .vscode

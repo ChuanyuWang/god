@@ -1,6 +1,6 @@
 //var mongojs = require('mongojs');
 var util = require('util');
-var config = require('./config.db');
+var config = require('./credentials');
 var monk = require('monk');
 
 // Store all connected connections.

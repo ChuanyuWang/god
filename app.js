@@ -9,7 +9,6 @@ const session = require('express-session');
 const MongoStore = require('connect-mongo')(session);
 var flash = require('connect-flash');
 var config = require('./config');
-var db_config = require('./config.db');
 var i18n = require('i18n');
 
 // main application

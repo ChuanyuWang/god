@@ -60,7 +60,8 @@ module.exports = {
           ],
           options: {
             witch_save_on_first_night: false
-          }
+          },
+          judge: "xxx"
         }),
         dataType: "json"
       });

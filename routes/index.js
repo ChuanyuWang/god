@@ -83,6 +83,7 @@ router.post('/wx/creategame', function(req, res, next) {
         status: 'started',
         room: newRoom
     }).then(function(doc) {
+        // TODO, generate another random room
         if (doc) throw new Error('Bad luck, room is occupied. Try again later~');
         return createRoom(newRoom, game_options);
     }).then(function(room) {

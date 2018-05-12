@@ -28,6 +28,8 @@ if (app.get('env') === 'production') {
       // So that the application process is considered as online status
       //process.send('ready');
     });
+    require('../games')(server);
+    server.listen(3000);
 }
 
 /*

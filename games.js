@@ -1,18 +1,22 @@
+var connectionMgr = require('./util');
+
 /**
  * Module exports.
  */
 
+var io = null;
+
 module.exports = GameServer;
 
 function GameServer(httpServer) {
-    const io = require('socket.io')(httpServer);
+    io = require('socket.io')(httpServer);
 
     io.on('connection', function(socket) {
         if (!hasRoom(socket.handshake.query)) return socket.disconnect();
 
-        console.log(`user ${socket.id} joins room ${socket.handshake.query.room}`);
+        joinRoom(socket);
 
-        socket.emit('which room', (roomID) => {
+        socket.emit('update room', (roomID) => {
             console.log(roomID);
         });
 
@@ -30,6 +34,33 @@ function GameServer(httpServer) {
             console.log(`user ${socket.id} disconnecting`);
         });
     });
+}
+
+/**
+ * Join the room and get latest status
+ * @param {Object} user the Socket object
+ */
+function joinRoom(user) {
+    console.log(`user ${user.id} joins room ${user.handshake.query.room}`);
+    var roomID = parseInt(user.handshake.query.room);
+    var games = connectionMgr.connect('lyingman').get('games');
+    games.findOne({
+        status: 'started',
+        room: roomID
+    }).then(function(doc) {
+        if (!doc) throw new Error(`Can't find room ${roomID}`);
+        return doc;
+    }).then(function(doc) {
+        user.emit('update', {
+            phase: 'sit down',
+            players: doc.players
+        });
+    }).catch(function(err) {
+        user.emit('update', {
+            error: err.toString()
+        });
+    });
+    // Add the user as one of the players if it's not full
 }
 
 /**

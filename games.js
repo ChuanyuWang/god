@@ -45,7 +45,7 @@ function joinRoom(user) {
     var roomID = parseInt(user.handshake.query.room);
     var games = connectionMgr.connect('lyingman').get('games');
     games.findOne({
-        status: 'started',
+        isOver: false,
         room: roomID
     }).then(function(doc) {
         if (!doc) throw new Error(`Can't find room ${roomID}`);

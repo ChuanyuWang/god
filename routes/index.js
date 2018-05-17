@@ -80,7 +80,7 @@ router.post('/wx/creategame', function(req, res, next) {
 
     var games = connectionMgr.connect('lyingman').get('games');
     games.findOne({
-        status: 'started',
+        isOver: false,
         room: newRoom
     }).then(function(doc) {
         // TODO, generate another random room
@@ -103,7 +103,7 @@ router.post('/wx/creategame', function(req, res, next) {
     "_id": ObjectID("5af450d4e9966b48a044237b"),
     "room": 1883,
     "judge": "ocx7i5H6DoT9QS3UJGdv0jVp0dJ0",
-    "status": "started",
+    "isOver": false,
     "next": "start",
     "players": [
         {
@@ -206,7 +206,7 @@ function createRoom(roomID, gameOptions) {
     return {
         room: roomID,
         judge: gameOptions.judge,
-        status: 'started',
+        isOver: false,
         next: 'start',
         players: players,
         roles: roles,

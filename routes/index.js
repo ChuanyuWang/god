@@ -207,7 +207,7 @@ function createRoom(roomID, gameOptions) {
         room: roomID,
         judge: gameOptions.judge,
         isOver: false,
-        next: 'start',
+        next: 'sit down',
         players: players,
         roles: roles,
         options: gameOptions.options

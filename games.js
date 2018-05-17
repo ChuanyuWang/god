@@ -15,6 +15,7 @@ function GameServer(httpServer) {
         if (!hasRoom(socket.handshake.query)) return socket.disconnect();
 
         joinRoom(socket);
+        playerSitDown(socket);
 
         socket.emit('update room', (roomID) => {
             console.log(roomID);
@@ -51,16 +52,58 @@ function joinRoom(user) {
         if (!doc) throw new Error(`Can't find room ${roomID}`);
         return doc;
     }).then(function(doc) {
-        user.emit('update', {
-            phase: 'sit down',
-            players: doc.players
-        });
+        // TODO, join room
+        user.emit('update', getStatus(doc, user));
     }).catch(function(err) {
         user.emit('update', {
             error: err.toString()
         });
     });
     // Add the user as one of the players if it's not full
+}
+
+function playerSitDown(socket) {
+    socket.on('sit', (seat, userInfo) => {
+        var roomID = getRoom(socket);
+        var games = connectionMgr.connect('lyingman').get('games');
+        //TODO, handle change seat
+        games.findOneAndUpdate({
+            isOver: false,
+            room: roomID,
+            'players.seat' : parseInt(seat)
+        }, {
+            $set :{
+                'players.$.openid': userInfo.openid,
+                'players.$.nickname': userInfo.nickname,
+                'players.$.avatar': userInfo.avatar
+            }
+        }).then(function(doc) {
+            if (!doc) throw new Error(`Can't find room ${roomID}`);
+            // TODO, update all players in this room
+            socket.emit('update', getStatus(doc, socket));
+        }).catch(function(err) {
+            socket.emit('update', {
+                error: err.toString()
+            });
+        });
+    });
+}
+
+function getStatus(game, user) {
+    var players = [];
+    if (game.next === 'sit down') {
+        players = game.players.map(function(value, index, array) {
+            return {
+                seat: value.seat,
+                nickname: value.nickname,
+                avatar: value.avatar
+            }
+        })
+    }
+    return {
+        players: playesr,
+        roles: getRoleDescription(game.roles)
+    }
 }
 
 /**
@@ -81,4 +124,8 @@ function hasRoom(query) {
         return false;
     }
     return true;
+}
+
+function getRoom(socket) {
+    return parseInt(socket.handshake.query.room);
 }

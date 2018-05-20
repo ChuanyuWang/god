@@ -1,3 +1,4 @@
+var assert = require('assert');
 var connectionMgr = require('./util');
 
 /**
@@ -47,13 +48,18 @@ function joinRoom(user) {
     var games = connectionMgr.connect('lyingman').get('games');
     games.findOne({
         isOver: false,
-        room: roomID
+        room: roomID,
+        $or: [
+            {next: 'sit down'},
+            {'players.openid' : user.handshake.query.openid}
+        ]
     }).then(function(doc) {
         if (!doc) throw new Error(`Can't find room ${roomID}`);
         return doc;
     }).then(function(doc) {
-        // TODO, join room
-        user.emit('update', getStatus(doc, user));
+        user.join(roomID, function() {
+            user.emit('update', getStatus(doc, user));
+        })
     }).catch(function(err) {
         user.emit('update', {
             error: err.toString()
@@ -64,23 +70,37 @@ function joinRoom(user) {
 
 function playerSitDown(socket) {
     socket.on('sit', (seat, userInfo) => {
+        if (!userInfo) return;
         var roomID = getRoom(socket);
         var games = connectionMgr.connect('lyingman').get('games');
-        //TODO, handle change seat
+        //handle change seat
         games.findOneAndUpdate({
             isOver: false,
             room: roomID,
-            'players.seat' : parseInt(seat)
+            'players.openid': userInfo.openid
         }, {
-            $set :{
-                'players.$.openid': userInfo.openid,
-                'players.$.nickname': userInfo.nickname,
-                'players.$.avatar': userInfo.avatar
+            $set: {
+                'players.$.openid': '',
+                'players.$.nickname': '',
+                'players.$.avatarUrl': ''
             }
         }).then(function(doc) {
+            assert(userInfo!=null);
+            return games.findOneAndUpdate({
+                isOver: false,
+                room: roomID,
+                'players.seat': parseInt(seat)
+            }, {
+                $set: {
+                    'players.$.openid': userInfo.openid,
+                    'players.$.nickname': userInfo.nickname,
+                    'players.$.avatarUrl': userInfo.avatarUrl
+                }
+            });
+        }).then(function(doc) {
             if (!doc) throw new Error(`Can't find room ${roomID}`);
-            // TODO, update all players in this room
-            socket.emit('update', getStatus(doc, socket));
+            //update all players in this room
+            io.to(roomID).emit('update', getStatus(doc, socket));
         }).catch(function(err) {
             socket.emit('update', {
                 error: err.toString()
@@ -96,14 +116,34 @@ function getStatus(game, user) {
             return {
                 seat: value.seat,
                 nickname: value.nickname,
-                avatar: value.avatar
+                avatarUrl: value.avatarUrl,
+                openid: value.openid,
+                role: '' //TODO, return the role only if it's necessary
             }
         })
     }
     return {
-        players: playesr,
+        next: 'sit down',
+        players: players,
         roles: getRoleDescription(game.roles)
     }
+}
+
+function getRoleDescription(roles) {
+    var wolf_number = 0;
+    var villager_number = 0;
+    var mutant_roles = [];
+    var wolf_roles = [];
+    (roles || []).forEach(function(value, index, array) {
+        if (value.role === 'villager') villager_number++;
+        else if (!value.isGood) {
+            wolf_number++;
+            if (value.role !== 'werewolf') wolf_roles.push(value.name);
+        } else {
+            mutant_roles.push(value.name);
+        }
+    });
+    return `${villager_number}村民 \n${wolf_number}狼人${wolf_roles.length > 0 ?'('+wolf_roles.join(',')+')':''} \n${mutant_roles.join(',')}`;
 }
 
 /**
@@ -116,7 +156,7 @@ function getStatus(game, user) {
      t: 'MDL4v2K',
      b64: '1' 
     }
- * @param {*} query 
+ * @param {Object} query 
  */
 function hasRoom(query) {
     let room = parseInt(query.room || -1);

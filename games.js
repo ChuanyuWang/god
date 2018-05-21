@@ -17,6 +17,7 @@ function GameServer(httpServer) {
 
         joinRoom(socket);
         playerSitDown(socket);
+        startGame(socket);
 
         socket.emit('update room', (roomID) => {
             console.log(roomID);
@@ -50,8 +51,8 @@ function joinRoom(user) {
         isOver: false,
         room: roomID,
         $or: [
-            {next: 'sit down'},
-            {'players.openid' : user.handshake.query.openid}
+            { next: 'sit down' },
+            { 'players.openid': user.handshake.query.openid }
         ]
     }).then(function(doc) {
         if (!doc) throw new Error(`Can't find room ${roomID}`);
@@ -79,28 +80,60 @@ function playerSitDown(socket) {
             room: roomID,
             'players.openid': userInfo.openid
         }, {
-            $set: {
-                'players.$.openid': '',
-                'players.$.nickname': '',
-                'players.$.avatarUrl': ''
-            }
-        }).then(function(doc) {
-            assert(userInfo!=null);
-            return games.findOneAndUpdate({
-                isOver: false,
-                room: roomID,
-                'players.seat': parseInt(seat)
-            }, {
                 $set: {
-                    'players.$.openid': userInfo.openid,
-                    'players.$.nickname': userInfo.nickname,
-                    'players.$.avatarUrl': userInfo.avatarUrl
+                    'players.$.openid': '',
+                    'players.$.nickname': '',
+                    'players.$.avatarUrl': ''
                 }
+            }).then(function(doc) {
+                assert(userInfo != null);
+                return games.findOneAndUpdate({
+                    isOver: false,
+                    room: roomID,
+                    'players.seat': parseInt(seat)
+                }, {
+                        $set: {
+                            'players.$.openid': userInfo.openid,
+                            'players.$.nickname': userInfo.nickname,
+                            'players.$.avatarUrl': userInfo.avatarUrl
+                        }
+                    });
+            }).then(function(doc) {
+                if (!doc) throw new Error(`Can't find room ${roomID}`);
+                //update all players in this room
+                io.to(roomID).emit('update', getStatus(doc, socket));
+            }).catch(function(err) {
+                socket.emit('update', {
+                    error: err.toString()
+                });
             });
+    });
+}
+
+function startGame(socket) {
+    socket.on('start', (room) => {
+        if (!room) return;
+        var roomID = parseInt(room);
+        var games = connectionMgr.connect('lyingman').get('games');
+        //handle change seat
+        games.findOne({
+            isOver: false,
+            room: roomID
         }).then(function(doc) {
             if (!doc) throw new Error(`Can't find room ${roomID}`);
+            doc.players.forEach(function(value, index, array) {
+                if (!value.openid) throw new Error(`Not enough players in room ${roomID}`)
+            })
+            return games.findOneAndUpdate({
+                _id: doc._id
+            }, {
+                $set: assignRoles(doc.roles)
+            });
+        }).then(function(doc) {
             //update all players in this room
+            console.log(doc)
             io.to(roomID).emit('update', getStatus(doc, socket));
+            //TODO, go to the first night n 10 seconds
         }).catch(function(err) {
             socket.emit('update', {
                 error: err.toString()
@@ -109,9 +142,83 @@ function playerSitDown(socket) {
     });
 }
 
+function assignRoles(roles) {
+    var roles = roles || [];
+    if (hasRole(roles, 'thief')) { // add two more villagers if has thief
+        roles.splice(findRole(roles, 'thief'), 1);
+        roles.push({
+            "role": "villager",
+            "name": "普通村民",
+            "isMutant": false,
+            "isGood": true
+        }, {
+            "role": "villager",
+            "name": "普通村民",
+            "isMutant": false,
+            "isGood": true
+        });
+    }
+    var setQuery = {};
+    // random assign role to player
+    roles = shuffle(roles);
+    if (hasRole(roles, 'thief')) {
+        while (!setQuery['options.thief_hidden_roles']) {
+            if (roles[0].isGood || roles[1].isGood) break;
+            else roles = shuffle(roles);
+        }
+        setQuery['options.thief_hidden_roles'] = roles.slice(0, 2);
+        roles = roles.slice(2);
+    }
+
+    roles.forEach(function(value, index, array) {
+        setQuery['players.' + index + '.role'] = value.role;
+    })
+
+    setQuery['next'] = 'check role';
+    console.log(setQuery);
+    return setQuery;
+}
+
+function findRole(array, role) {
+    for (var i=0;i<array.length;i++) {
+        if (array[i].role === role)
+            return i;
+    }
+    return -1;
+}
+
+function hasRole(array, role) {
+    return findRole(array, role) > -1;
+}
+
+/**
+ * The Fisher-Yates (aka Knuth) shuffle for Browser and Node.js
+ * Refer to https://bost.ocks.org/mike/shuffle/ 
+ * 
+ * @param {Array} array 
+ */
+function shuffle(array) {
+    var currentIndex = array.length, temporaryValue, randomIndex;
+  
+    // While there remain elements to shuffle...
+    while (0 !== currentIndex) {
+  
+      // Pick a remaining element...
+      randomIndex = Math.floor(Math.random() * currentIndex);
+      currentIndex -= 1;
+  
+      // And swap it with the current element.
+      temporaryValue = array[currentIndex];
+      array[currentIndex] = array[randomIndex];
+      array[randomIndex] = temporaryValue;
+    }
+  
+    return array;
+}
+
 function getStatus(game, user) {
     var players = [];
-    if (game.next === 'sit down') {
+    if (game.next === 'sit down' || game.next === 'check role') {
         players = game.players.map(function(value, index, array) {
             return {
                 seat: value.seat,
@@ -123,7 +230,7 @@ function getStatus(game, user) {
         })
     }
     return {
-        next: 'sit down',
+        next: game.next,
         players: players,
         roles: getRoleDescription(game.roles)
     }
@@ -143,7 +250,7 @@ function getRoleDescription(roles) {
             mutant_roles.push(value.name);
         }
     });
-    return `${villager_number}村民 \n${wolf_number}狼人${wolf_roles.length > 0 ?'('+wolf_roles.join(',')+')':''} \n${mutant_roles.join(',')}`;
+    return `${villager_number}村民 \n${wolf_number}狼人${wolf_roles.length > 0 ? '(' + wolf_roles.join(',') + ')' : ''} \n${mutant_roles.join(',')}`;
 }
 
 /**

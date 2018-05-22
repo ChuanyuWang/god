@@ -105,6 +105,7 @@ router.post('/wx/creategame', function(req, res, next) {
     "judge": "ocx7i5H6DoT9QS3UJGdv0jVp0dJ0",
     "isOver": false,
     "next": "start",
+    "day": 0,
     "players": [
         {
             "seat": 1,
@@ -208,6 +209,7 @@ function createRoom(roomID, gameOptions) {
         judge: gameOptions.judge,
         isOver: false,
         next: 'sit down',
+        day: 0,
         players: players,
         roles: roles,
         options: gameOptions.options

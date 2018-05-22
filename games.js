@@ -6,6 +6,7 @@ var connectionMgr = require('./util');
  */
 
 var io = null;
+var games = connectionMgr.connect('lyingman').get('games');
 
 module.exports = GameServer;
 
@@ -13,6 +14,7 @@ function GameServer(httpServer) {
     io = require('socket.io')(httpServer);
 
     io.on('connection', function(socket) {
+        // TODO, handle the case when judge is reconnected
         if (!hasRoom(socket.handshake.query)) return socket.disconnect();
 
         joinRoom(socket);
@@ -131,9 +133,9 @@ function startGame(socket) {
             });
         }).then(function(doc) {
             //update all players in this room
-            console.log(doc)
-            io.to(roomID).emit('update', getStatus(doc, socket));
+            io.to(doc.room).emit('update', getStatus(doc, socket));
             //TODO, go to the first night n 10 seconds
+            setTimeout(closeEyes, 10000, doc, socket);
         }).catch(function(err) {
             socket.emit('update', {
                 error: err.toString()
@@ -145,6 +147,7 @@ function startGame(socket) {
 function assignRoles(roles) {
     var roles = roles || [];
     if (hasRole(roles, 'thief')) { // add two more villagers if has thief
+        //TODO, need to shuffle with thief role
         roles.splice(findRole(roles, 'thief'), 1);
         roles.push({
             "role": "villager",
@@ -275,4 +278,34 @@ function hasRoom(query) {
 
 function getRoom(socket) {
     return parseInt(socket.handshake.query.room);
+}
+
+function closeEyes(game, socket) {
+    games.findOneAndUpdate({
+        _id: game._id
+    }, {
+        $set: {
+            next: 'night 1'
+        },
+        $inc: {
+            day: 1
+        }
+    }).then(function(doc) {
+        io.to(doc.room).emit('update', getStatus(game, socket));
+        setTimeout(thiefPickRoles, 3000, game, socket);
+    })
+}
+
+function thiefPickRoles(game, socket) {
+    if (!hasRole(game.roles, 'thief')) return cupidPickLovers(game, socket);
+    console.log("thief1222222222222");
+}
+
+function cupidPickLovers(game, socket) {
+    // TODO, only it's the first day
+    if (!hasRole(game.roles, 'cupid')) return magicianSwitchPlayers(game, socket);
+}
+
+function magicianSwitchPlayers(game, socket) {
+    if (!hasRole(game.roles, 'magician')) return magicianSwitchPlayers(game, socket);
 }

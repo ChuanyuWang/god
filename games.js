@@ -147,8 +147,6 @@ function startGame(socket) {
 function assignRoles(roles) {
     var roles = roles || [];
     if (hasRole(roles, 'thief')) { // add two more villagers if has thief
-        //TODO, need to shuffle with thief role
-        roles.splice(findRole(roles, 'thief'), 1);
         roles.push({
             "role": "villager",
             "name": "普通村民",
@@ -166,7 +164,7 @@ function assignRoles(roles) {
     roles = shuffle(roles);
     if (hasRole(roles, 'thief')) {
         while (!setQuery['options.thief_hidden_roles']) {
-            if (roles[0].isGood || roles[1].isGood) break;
+            if ((roles[0].isGood || roles[1].isGood) && findRole(roles, 'thief') > 1) break;
             else roles = shuffle(roles);
         }
         setQuery['options.thief_hidden_roles'] = roles.slice(0, 2);

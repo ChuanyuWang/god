@@ -282,26 +282,74 @@ function closeEyes(game, socket) {
     games.findOneAndUpdate({
         _id: game._id
     }, {
-        $set: {
-            next: 'night 1'
-        },
-        $inc: {
-            day: 1
-        }
+        $set: { next: 'night' },
+        $inc: { day: 1 }
     }).then(function(doc) {
-        io.to(doc.room).emit('update', getStatus(game, socket));
-        setTimeout(thiefPickRoles, 3000, game, socket);
-    })
+        io.to(doc.room).emit('update', getStatus(doc, socket));
+        setTimeout(thiefPickRoles, 3000, doc, socket);
+    }).catch(function(err) {
+        socket.emit('update', {
+            error: err.toString()
+        });
+    });
 }
 
 function thiefPickRoles(game, socket) {
-    if (!hasRole(game.roles, 'thief')) return cupidPickLovers(game, socket);
-    console.log("thief1222222222222");
+    if (!hasRole(game.roles, 'thief') || game.day !== 1) return cupidPickLovers(game, socket);
+
+    var now = new Date();
+    games.findOneAndUpdate({
+        _id: game._id
+    }, {
+        $set: { 
+            next: 'night-thief',
+            timestamp: now
+        }
+    }).then(function(doc) {
+        io.to(doc.room).emit('update', getStatus(doc, socket));
+        
+        // The timeout action in 10 seconds if theif player is disconnected
+        setTimeout(function() {
+            var newRole = doc.options.thief_hidden_roles[0];
+            if (doc.options.thief_hidden_roles[0].isGood) 
+                newRole = doc.options.thief_hidden_roles[1];
+            thiefPickRoles_end(doc, socket, newRole, now);
+        }, 10000);
+    }).catch(function(err) {
+        socket.emit('update', {
+            error: err.toString()
+        });
+    });
+}
+
+function thiefPickRoles_end(game, socket, newRole, timestamp) {
+    var query = {
+        _id: game._id,
+        'players.role': 'thief'
+    };
+    if (timestamp) {
+        query['timestamp'] = timestamp
+    }
+    games.findOneAndUpdate(query, {
+        $set: { 
+            next: 'night-thief-end',
+            'players.$.role': newRole,
+            timestamp: new Date()
+        }
+    }).then(function(doc) {
+        assert(newRole != null)
+        io.to(doc.room).emit('update', getStatus(doc, socket));
+        setTimeout(cupidPickLovers, 3000, doc, socket);
+    }).catch(function(err) {
+        socket.emit('update', {
+            error: err.toString()
+        });
+    });
 }
 
 function cupidPickLovers(game, socket) {
     // TODO, only it's the first day
-    if (!hasRole(game.roles, 'cupid')) return magicianSwitchPlayers(game, socket);
+    if (!hasRole(game.roles, 'cupid') || game.day !== 1) return magicianSwitchPlayers(game, socket);
 }
 
 function magicianSwitchPlayers(game, socket) {

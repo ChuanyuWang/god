@@ -218,18 +218,15 @@ function shuffle(array) {
 }
 
 function getStatus(game, user) {
-    var players = [];
-    if (game.next === 'sit down' || game.next === 'check role') {
-        players = game.players.map(function(value, index, array) {
-            return {
-                seat: value.seat,
-                nickname: value.nickname,
-                avatarUrl: value.avatarUrl,
-                openid: value.openid,
-                role: '' //TODO, return the role only if it's necessary
-            }
-        })
-    }
+    var players = game.players.map(function(value, index, array) {
+        return {
+            seat: value.seat,
+            nickname: value.nickname,
+            avatarUrl: value.avatarUrl,
+            openid: value.openid,
+            role: '' //TODO, return the role only if it's necessary
+        }
+    });
     return {
         next: game.next,
         players: players,
@@ -306,7 +303,7 @@ function thiefPickRoles(game, socket) {
             timestamp: now
         }
     }).then(function(doc) {
-        io.to(doc.room).emit('update', getStatus(doc, socket));
+        io.to(doc.room).emit('update', getStatus(doc, socket), 10000);
         
         // The timeout action in 10 seconds if theif player is disconnected
         setTimeout(function() {

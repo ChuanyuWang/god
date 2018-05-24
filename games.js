@@ -225,7 +225,9 @@ function getStatus(game, user) {
             nickname: value.nickname,
             avatarUrl: value.avatarUrl,
             openid: value.openid,
-            role: '' //TODO, return the role only if it's necessary
+            role: value.role,
+            isDead: value.isDead,
+            isReveal: false
         }
     });
     return {
@@ -355,7 +357,6 @@ function thiefPickRoles_end(socket, newRole, timestamp) {
 }
 
 function cupidPickLovers(game, socket) {
-    // TODO, only it's the first day
     if (!hasRole(game.roles, 'cupid') || game.day !== 1) return magicianSwitchPlayers(game, socket);
 }
 

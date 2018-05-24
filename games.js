@@ -20,6 +20,7 @@ function GameServer(httpServer) {
         joinRoom(socket);
         playerSitDown(socket);
         startGame(socket);
+        thiefDo(socket);
 
         socket.emit('update room', (roomID) => {
             console.log(roomID);
@@ -310,7 +311,7 @@ function thiefPickRoles(game, socket) {
             var newRole = doc.options.thief_hidden_roles[0];
             if (doc.options.thief_hidden_roles[0].isGood) 
                 newRole = doc.options.thief_hidden_roles[1];
-            thiefPickRoles_end(doc, socket, newRole, now);
+            thiefPickRoles_end(socket, newRole, now);
         }, 10000);
     }).catch(function(err) {
         socket.emit('update', {
@@ -319,9 +320,17 @@ function thiefPickRoles(game, socket) {
     });
 }
 
-function thiefPickRoles_end(game, socket, newRole, timestamp) {
+function thiefDo(socket) {
+    socket.on('thief act', (newRole) => {
+        thiefPickRoles_end(socket, newRole);
+    });
+}
+
+function thiefPickRoles_end(socket, newRole, timestamp) {
+    var roomID = getRoom(socket);
     var query = {
-        _id: game._id,
+        isOver: false,
+        room: roomID,
         'players.role': 'thief'
     };
     if (timestamp) {
@@ -334,6 +343,7 @@ function thiefPickRoles_end(game, socket, newRole, timestamp) {
             timestamp: new Date()
         }
     }).then(function(doc) {
+        if (!doc) return; // default action handler, need to skip
         assert(newRole != null)
         io.to(doc.room).emit('update', getStatus(doc, socket));
         setTimeout(cupidPickLovers, 3000, doc, socket);

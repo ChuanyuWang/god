@@ -21,6 +21,8 @@ function GameServer(httpServer) {
         playerSitDown(socket);
         startGame(socket);
         thiefDo(socket);
+        cupidDo(socket);
+        guardDo(socket);
 
         socket.emit('update room', (roomID) => {
             console.log(roomID);
@@ -227,7 +229,8 @@ function getStatus(game, user) {
             openid: value.openid,
             role: value.role,
             isDead: value.isDead,
-            isReveal: false
+            isReveal: false,
+            isCouple: false
         }
     });
     return {
@@ -358,6 +361,251 @@ function thiefPickRoles_end(socket, newRole, timestamp) {
 
 function cupidPickLovers(game, socket) {
     if (!hasRole(game.roles, 'cupid') || game.day !== 1) return magicianSwitchPlayers(game, socket);
+
+    var now = new Date();
+    games.findOneAndUpdate({_id: game._id}, {
+        $set: { 
+            next: 'night-cupid',
+            timestamp: now
+        }
+    }).then(function(doc) {
+        io.to(doc.room).emit('update', getStatus(doc, socket), 30000);
+        
+        // The timeout action in 30 seconds if cupid player is disconnected
+        setTimeout(function() {
+            cupidPickLovers_end(socket, [1, 2], now);
+        }, 30000);
+    }).catch(function(err) {
+        socket.emit('update', {
+            error: err.toString()
+        });
+    });
+}
+
+function cupidDo(socket) {
+    socket.on('cupid act', (lovers) => {
+        cupidPickLovers_end(socket, lovers);
+    });
+}
+
+/**
+ * Set the couple
+ * 
+ * @param {Object} socket 
+ * @param {Array} lovers the seat numbers of the couple
+ * @param {Date} timestamp (Optional) the timestamp to match
+ */
+function cupidPickLovers_end(socket, lovers, timestamp) {
+    assert(lovers.length === 2 && lovers[0] > 0 && lovers[1] > 0);
+    var roomID = getRoom(socket);
+    var query = {
+        isOver: false,
+        room: roomID
+    };
+    if (timestamp) {
+        query['timestamp'] = timestamp
+    }
+    var set = {
+        next: 'night-cupid-end',
+        timestamp: new Date()
+    };
+    // lovers gives the seat numbers of the couple in array
+    var couple1 = lovers[0] -1, couple2 = lovers[1] -1;
+    set[`players.${couple1}.isCouple`] = true;
+    set[`players.${couple2}.isCouple`] = true;
+    games.findOneAndUpdate(query, {
+        $set: set
+    }).then(function(doc) {
+        if (!doc) return; // default action handler, need to skip
+        io.to(doc.room).emit('update', getStatus(doc, socket));
+        setTimeout(checkCoupleRole, 3000, doc, socket);
+    }).catch(function(err) {
+        socket.emit('update', {
+            error: err.toString()
+        });
+    });
+}
+
+function checkCoupleRole(game, socket) {
+    games.findOneAndUpdate({_id: game._id}, {
+        $set: { 
+            next: 'night-cupid-check-role',
+            timestamp: new Date()
+        }
+    }).then(function(doc) {
+        io.to(doc.room).emit('update', getStatus(doc, socket));
+        // Wait 10 seconds until players check if he/she is one of the couple
+        setTimeout(cupidAllCloseEyes, 10000, doc, socket);
+    }).catch(function(err) {
+        socket.emit('update', {
+            error: err.toString()
+        });
+    });
+}
+
+function cupidAllCloseEyes(game, socket) {
+    games.findOneAndUpdate({_id: game._id}, {
+        $set: { 
+            next: 'night-cupid-close-eye',
+            timestamp: new Date()
+        }
+    }).then(function(doc) {
+        io.to(doc.room).emit('update', getStatus(doc, socket));
+        // Wait 3 seconds then ask the couple to open eye
+        setTimeout(coupleOpenEyes, 3000, doc, socket);
+    }).catch(function(err) {
+        socket.emit('update', {
+            error: err.toString()
+        });
+    });
+}
+
+function coupleOpenEyes(game, socket) {
+    games.findOneAndUpdate({_id: game._id}, {
+        $set: { 
+            next: 'night-couple',
+            timestamp: new Date()
+        }
+    }).then(function(doc) {
+        io.to(doc.room).emit('update', getStatus(doc, socket));
+        // Wait 10 seconds until the couple know each other
+        setTimeout(coupleCloseEyes, 10000, doc, socket);
+    }).catch(function(err) {
+        socket.emit('update', {
+            error: err.toString()
+        });
+    });
+}
+
+function coupleCloseEyes(game, socket) {
+    games.findOneAndUpdate({_id: game._id}, {
+        $set: { 
+            next: 'night-couple-end',
+            timestamp: new Date()
+        }
+    }).then(function(doc) {
+        io.to(doc.room).emit('update', getStatus(doc, socket));
+        // Wait 3 seconds then ask the couple to open eye
+        setTimeout(cupidAllCloseEyes, 3000, doc, socket);
+    }).catch(function(err) {
+        socket.emit('update', {
+            error: err.toString()
+        });
+    });
+}
+
+function guardProtect(game, socket) {
+    if (!hasRole(game.roles, 'guard')) return werewolfKill(game, socket);
+    var now = new Date();
+    games.findOneAndUpdate({_id: game._id}, {
+        $set: { 
+            next: 'night-guard',
+            timestamp: now
+        }
+    }).then(function(doc) {
+        io.to(doc.room).emit('update', getStatus(doc, socket));
+        // The timeout action in 30 seconds if guard player is disconnected
+        setTimeout(guardProtect_end, isDead(doc, 'guard') ? 10000: 30000, socket, {day: doc.day, guard: 0}, now);
+    }).catch(function(err) {
+        socket.emit('update', {
+            error: err.toString()
+        });
+    });
+}
+
+function guardDo(socket) {
+    socket.on('guard act', (action) => {
+        guardProtect_end(socket, action);
+    });
+}
+
+/**
+ * 
+ * @param {Object} socket 
+ * @param {Number} action {day: 1, guard: 2} the first day guard the 2nd player
+ * @param {Date} timestamp 
+ */
+function guardProtect_end(socket, action, timestamp) {
+    var roomID = getRoom(socket);
+    var query = {
+        isOver: false,
+        room: roomID
+    };
+    if (timestamp) {
+        query['timestamp'] = timestamp
+    }
+    var set = {
+        next: 'night-guard-end',
+        timestamp: new Date()
+    };
+    if (action.guard) {
+        set[`history.${action.day}.guard`] = action.guard;
+    }
+    games.findOneAndUpdate(query, {
+        $set: set
+    }).then(function(doc) {
+        if (!doc) return; // default action handler, need to skip
+        io.to(doc.room).emit('update', getStatus(doc, socket));
+        setTimeout(werewolfKill, 3000, doc, socket);
+    }).catch(function(err) {
+        socket.emit('update', {
+            error: err.toString()
+        });
+    });
+}
+
+function werewolfKill(game, socket) {
+    var now = new Date();
+    games.findOneAndUpdate({_id: game._id}, {
+        $set: { 
+            next: 'night-werewolf',
+            timestamp: now
+        }
+    }).then(function(doc) {
+        io.to(doc.room).emit('update', getStatus(doc, socket));
+        // The timeout action in 60 seconds if werewolf player is disconnected
+        setTimeout(werewolfKill_end, 60000, socket, {day: doc.day, kill: []}, now);
+    }).catch(function(err) {
+        socket.emit('update', {
+            error: err.toString()
+        });
+    });
+}
+
+function wolfDo(socket) {
+    socket.on('werewolf act', (kill) => {
+        //TODO, handle the kill action from each wolf
+        werewolfKill_end(socket, kill);
+    });
+}
+
+function werewolfKill_end(socket, action, timestamp) {
+    var roomID = getRoom(socket);
+    var query = {
+        isOver: false,
+        room: roomID
+    };
+    if (timestamp) {
+        query['timestamp'] = timestamp
+    }
+    var set = {
+        next: 'night-werewolf-end',
+        timestamp: new Date()
+    };
+    set[`history.${action.day}.kill`] = action.kill;
+    games.findOneAndUpdate(query, {
+        $set: set
+    }).then(function(doc) {
+        if (!doc) return; // default action handler, need to skip
+        //TODO, is game over?
+        io.to(doc.room).emit('update', getStatus(doc, socket));
+        //TODO, awake witch
+        //setTimeout(werewolfKill, 3000, doc, socket);
+    }).catch(function(err) {
+        socket.emit('update', {
+            error: err.toString()
+        });
+    });
 }
 
 function magicianSwitchPlayers(game, socket) {

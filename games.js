@@ -23,6 +23,7 @@ function GameServer(httpServer) {
         thiefDo(socket);
         cupidDo(socket);
         guardDo(socket);
+        wolfDo(socket);
 
         socket.emit('update room', (roomID) => {
             console.log(roomID);
@@ -189,6 +190,14 @@ function findRole(array, role) {
             return i;
     }
     return -1;
+}
+
+function isDead(players, role) {
+    for (var i=0;i<players.length;i++) {
+        if (players[i].role === role && players[i].isDead)
+            return true;
+    }
+    return false;
 }
 
 function hasRole(array, role) {
@@ -486,7 +495,7 @@ function coupleCloseEyes(game, socket) {
     }).then(function(doc) {
         io.to(doc.room).emit('update', getStatus(doc, socket));
         // Wait 3 seconds then ask the couple to open eye
-        setTimeout(cupidAllCloseEyes, 3000, doc, socket);
+        setTimeout(guardProtect, 3000, doc, socket);
     }).catch(function(err) {
         socket.emit('update', {
             error: err.toString()

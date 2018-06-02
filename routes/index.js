@@ -111,21 +111,21 @@ router.post('/wx/creategame', function(req, res, next) {
             "seat": 1,
             "role": null,
             "openid": "",
-            "nickname": "",
+            "nickName": "",
             "avatarUrl": ""
         },
         {
             "seat": 2,
             "role": null,
             "openid": "",
-            "nickname": "",
+            "nickName": "",
             "avatarUrl": ""
         },
         {
             "seat": 3,
             "role": null,
             "openid": "",
-            "nickname": "",
+            "nickName": "",
             "avatarUrl": ""
         }
     ],
@@ -162,7 +162,7 @@ function createRoom(roomID, gameOptions) {
             seat: i,
             role: null,
             openid: '',
-            nickname: '',
+            nickName: '',
             avatarUrl: ''
         });
     }

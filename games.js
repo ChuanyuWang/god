@@ -79,6 +79,7 @@ function playerSitDown(socket) {
     socket.on('sit', (seat, userInfo) => {
         if (!userInfo) return;
         var roomID = getRoom(socket);
+        console.info(`[${roomID}] player "${userInfo.nickName}" sits in seat ${seat}`);
         var games = connectionMgr.connect('lyingman').get('games');
         //handle change seat
         games.findOneAndUpdate({
@@ -88,7 +89,7 @@ function playerSitDown(socket) {
         }, {
                 $set: {
                     'players.$.openid': '',
-                    'players.$.nickname': '',
+                    'players.$.nickName': '',
                     'players.$.avatarUrl': ''
                 }
             }).then(function(doc) {
@@ -100,7 +101,7 @@ function playerSitDown(socket) {
                 }, {
                         $set: {
                             'players.$.openid': userInfo.openid,
-                            'players.$.nickname': userInfo.nickname,
+                            'players.$.nickName': userInfo.nickName,
                             'players.$.avatarUrl': userInfo.avatarUrl
                         }
                     });
@@ -120,6 +121,7 @@ function startGame(socket) {
     socket.on('start', (room) => {
         if (!room) return;
         var roomID = parseInt(room);
+        console.info(`[${roomID}] start`);
         var games = connectionMgr.connect('lyingman').get('games');
         //handle change seat
         games.findOne({
@@ -233,7 +235,7 @@ function getStatus(game, user) {
     var players = game.players.map(function(value, index, array) {
         return {
             seat: value.seat,
-            nickname: value.nickname,
+            nickName: value.nickName,
             avatarUrl: value.avatarUrl,
             openid: value.openid,
             role: value.role,

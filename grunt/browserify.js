@@ -10,19 +10,22 @@ module.exports = {
             //['browserify-hmr',{ noServe : false }]
         ]
     },
-    app2: {
+    dev: {
         files: {
             'public/js/main.js': 'src/js/main.js'
         },
         options: {
             plugin: [
-                ['browserify-hmr', { noServe : false }]
+                ['browserify-hmr', { noServe: false }]
             ]
         }
     },
-    app: {
+    dist: {
         files: {
-            
+            'public/js/main.js': 'src/js/main.js'
+        },
+        options: {
+            plugin: []
         }
     }
 };

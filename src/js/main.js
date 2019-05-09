@@ -4,15 +4,18 @@
  * --------------------------------------------------------------------------
  */
 var i18nextplugin = require('./locales/i18nextplugin');
+var app = require('./components/test-console.vue').default;
 
 // DOM Ready =============================================================
 $(document).ready(function() {
     init();
 
     // bootstrap the test console panel
-    new Vue({el: '#app', render : function(h){
-        return h(require('./components/test-console.vue'));
-    }});
+    new Vue({
+        el: '#app', render: function(h) {
+            return h(app);
+        }
+    });
 });
 
 // Functions =============================================================

@@ -1,6 +1,6 @@
 'use strict';
 
-module.exports = function (grunt) {
+module.exports = function(grunt) {
   // show elapsed time at the end
   require('time-grunt')(grunt);
   // load all grunt tasks and their config
@@ -13,13 +13,19 @@ module.exports = function (grunt) {
     'uglify'
   ]);
 
+  grunt.registerTask('build2', [
+    'env:dist',
+    'less',
+    'browserify:dist'
+  ]);
+
   grunt.registerTask('default', ['dev']);
 
   grunt.registerTask('dev', [
     'env:dev',
     'less',
     'eslint',
-    'browserify',
+    'browserify:dev',
     'develop',
     'watch'
   ]);

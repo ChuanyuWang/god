@@ -1,4 +1,4 @@
-<style>
+<style lang="less">
 
 </style>
 
@@ -66,7 +66,9 @@ module.exports = {
         dataType: "json"
       });
       request.fail(function(jqXHR, textStatus, errorThrown) {
-        console.error(jqXHR.responseJSON ? jqXHR.responseJSON : jqXHR.responseText);
+        console.error(
+          jqXHR.responseJSON ? jqXHR.responseJSON : jqXHR.responseText
+        );
       });
       request.done(function(data, textStatus, jqXHR) {
         vm.result = data;

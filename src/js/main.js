@@ -4,6 +4,7 @@
  * --------------------------------------------------------------------------
  */
 var i18nextplugin = require('./locales/i18nextplugin');
+// Must use .default when require vue component, refer to https://github.com/vuejs/vue-loader/issues/1172
 var app = require('./components/test-console.vue').default;
 var jq = require('jquery');
 

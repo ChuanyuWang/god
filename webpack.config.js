@@ -28,6 +28,7 @@ module.exports = {
                     // disable the Hot Reload explicitly
                     // hotReload: false
                     // other vue-loader options go here
+                    // esModules: false // removed from v14.0.0, more information refer to https://github.com/vuejs/vue-loader/releases/tag/v14.0.0
                 }
             },
             {

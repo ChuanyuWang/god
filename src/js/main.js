@@ -5,9 +5,10 @@
  */
 var i18nextplugin = require('./locales/i18nextplugin');
 var app = require('./components/test-console.vue').default;
+var jq = require('jquery');
 
 // DOM Ready =============================================================
-$(document).ready(function() {
+jq(document).ready(function() {
     init();
 
     // bootstrap the test console panel

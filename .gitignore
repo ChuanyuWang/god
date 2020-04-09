@@ -6,3 +6,4 @@ config.db.js
 credentials.js
 .vscode
 .eslintcache
+package-lock.json

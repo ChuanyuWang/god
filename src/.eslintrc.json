@@ -15,10 +15,6 @@
         "$": "readonly",
         "i18next": "readonly"
     },
-    "parserOptions": {
-        "ecmaVersion": 6,
-        "sourceType": "script"
-    },
     "rules": {
         "no-unused-vars": [
             "error",

@@ -13,7 +13,7 @@ if (app.get('env') === 'production') {
     };
 
     app.set('port', process.env.PORT || 443);
-    var server = https.createServer(options, app).listen(app.get('port'), function() {
+    let server = https.createServer(options, app).listen(app.get('port'), function() {
         console.log('Express server listening on port ' + server.address().port);
         // send event "ready" to external process manager tool (PM2)
         // So that the application process is considered as online status
@@ -22,7 +22,7 @@ if (app.get('env') === 'production') {
 } else {
     var http = require('http');
     app.set('port', process.env.PORT || 3000);
-    var server = http.createServer(app).listen(app.get('port'), function() {
+    let server = http.createServer(app).listen(app.get('port'), function() {
         console.log('Express server listening on port ' + server.address().port);
         // send event "ready" to external process manager tool (PM2)
         // So that the application process is considered as online status

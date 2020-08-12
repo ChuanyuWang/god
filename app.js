@@ -15,7 +15,8 @@ var i18n = require('i18n');
 var app = express();
 app.locals.CDN_FILES = config.cdnlibs;
 
-var env = process.env.NODE_ENV || 'development';
+// app.get('env') returns 'development' if NODE_ENV is not defined. 
+var env = app.get('env');
 app.locals.ENV = env;
 app.locals.ENV_DEVELOPMENT = env == 'development';
 
@@ -46,6 +47,23 @@ app.use(express.json());
 app.use(express.urlencoded({
     extended: true
 }));
+
+// Tell express to use the webpack-dev-middleware and use the webpack.config.js
+// configuration file as a base.
+if (app.locals.ENV_DEVELOPMENT) {
+    console.log("1111111 " + app.get('env'))
+    const webpack = require('webpack');
+    const webpackDevMiddleware = require('webpack-dev-middleware');
+    const config = require('./webpack.config.js');
+    const compiler = webpack(config);
+    app.use(webpackDevMiddleware(compiler, {
+        publicPath: config.output.publicPath,
+    }));
+
+    app.use(require("webpack-hot-middleware")(compiler, {
+        log: console.log, path: '/__webpack_hmr', heartbeat: 10 * 1000
+    }));
+}
 
 //app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
@@ -119,8 +137,8 @@ app.use(function(err, req, res, next) {
 
 // development error handler
 // will print stacktrace
-if (app.get('env') === 'development') {
-    app.use(function(err, req, res, next) {
+if (app.locals.ENV_DEVELOPMENT) {
+    app.use(function(err, req, res) {
         res.status(err.status || 500);
         res.render('error', {
             message: err.message,
@@ -132,7 +150,7 @@ if (app.get('env') === 'development') {
 
 // production error handler
 // no stacktraces leaked to user
-app.use(function(err, req, res, next) {
+app.use(function(err, req, res) {
     res.status(err.status || 500);
     res.render('error', {
         message: err.message,

@@ -6,11 +6,12 @@ var hotMiddlewareScript = 'webpack-hot-middleware/client?path=/__webpack_hmr&tim
 
 
 module.exports = {
-    mode: process.env.NODE_ENV || 'development',
+    mode: process.env.NODE_ENV || 'production',
     target: "web",
-    devtool: "eval-source-map",
+    // Avoid inline-*** and eval-*** use in production as they can increase bundle size and reduce the overall performance.
+    devtool: 'source-map',
     entry: [
-        'webpack-hot-middleware/client?path=/__webpack_hmr&timeout=20000',
+        //'webpack-hot-middleware/client?path=/__webpack_hmr&timeout=20000',
         // And then the actual application
         './src/js/main.js'
         //main: ['./src/js/main.js', hotMiddlewareScript]
@@ -36,7 +37,6 @@ module.exports = {
         vue: 'Vue'
     },
     module: {
-        noParse: /jquery/,
         rules: [
             {
                 test: /\.css$/,
@@ -49,20 +49,28 @@ module.exports = {
                 loader: 'vue-loader',
                 options: {
                     // disable the Hot Reload explicitly
-                    hotReload: true
+                    hotReload: false
                     // other vue-loader options go here
                     // esModules: false // removed from v14.0.0, more information refer to https://github.com/vuejs/vue-loader/releases/tag/v14.0.0
-                    // also see https://github.com/webpack/webpack/issues/3929
                 }
             },
             {
-                test: /\.js$/,
-                include: path.resolve(__dirname, 'src'),
+                enforce: 'pre',
+                test: /\.(js|vue)$/,
+                exclude: /node_modules/,
+                loader: 'eslint-loader',
+            },
+            {
+                test: /\.j1s$/,
                 exclude: /(node_modules|bower_components)/,
                 use: {
                     loader: 'babel-loader',
                     options: {
-                        presets: ['@babel/preset-env']
+                        presets: [
+                            ['@babel/preset-env',
+                                { "regenerator": true }
+                            ]
+                        ]
                     }
                 }
             },
@@ -86,13 +94,16 @@ module.exports = {
     plugins: [
         // make sure to include the plugin!
         new VueLoaderPlugin(),
-        new webpack.HotModuleReplacementPlugin(),
+        //new webpack.HotModuleReplacementPlugin(),
         // make jquery available for all modules
         new webpack.ProvidePlugin({
             $: 'jquery'
         })
     ],
+    optimization: {
+        minimize: true
+    },
     performance: {
-        hints: false
+        hints: "warning"
     }
 };

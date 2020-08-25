@@ -15,6 +15,9 @@
         "$": "readonly",
         "i18next": "readonly"
     },
+    "plugins": [
+        "vue" // means eslint-plugin-vue
+    ],
     "rules": {
         "no-unused-vars": [
             "error",

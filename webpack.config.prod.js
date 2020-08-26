@@ -28,10 +28,6 @@ module.exports = {
             //vue: 'vue/dist/vue.min.js'
         }
     },
-    devServer: {
-        hot: true,
-        contentBase: './public/js',
-    },
     externals: {
         jquery: '$',
         vue: 'Vue'
@@ -58,10 +54,7 @@ module.exports = {
                 enforce: 'pre',
                 test: /\.(js|vue)$/,
                 exclude: /node_modules/,
-                loader: 'eslint-loader',
-                options: {
-                    plugins: ["vue"]
-                }
+                loader: 'eslint-loader'
             },
             {
                 test: /\.j1s$/,

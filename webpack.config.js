@@ -2,7 +2,7 @@ const path = require('path');
 const webpack = require('webpack');
 const VueLoaderPlugin = require('vue-loader/lib/plugin');
 
-var hotMiddlewareScript = 'webpack-hot-middleware/client?path=/__webpack_hmr&timeout=20000&reload=true';
+//var hotMiddlewareScript = 'webpack-hot-middleware/client?path=/__webpack_hmr&timeout=20000&reload=true';
 
 
 module.exports = {
@@ -23,19 +23,19 @@ module.exports = {
     },
     resolve: {
         extensions: ['.js', '.vue', '.json'],
+        //Create aliases to import or require certain modules more easily.
         alias: {
             //vue: 'vue/dist/vue.min.js'
         }
-    },
-    devServer: {
-        hot: true,
-        contentBase: './public/js',
     },
     externals: {
         jquery: '$',
         vue: 'Vue'
     },
     module: {
+        // Prevent webpack from parsing any files matching the given regular expression(s). 
+        // Ignored files should not have calls to import, require, define or any other importing mechanism. 
+        // This can boost build performance when ignoring large libraries.
         noParse: /jquery/,
         rules: [
             {
@@ -56,13 +56,18 @@ module.exports = {
                 }
             },
             {
-                test: /\.js$/,
+                // don't use babel to parse the js file until "runtime-generator" issue is resolved
+                test: /\.j1s$/,
                 include: path.resolve(__dirname, 'src'),
                 exclude: /(node_modules|bower_components)/,
                 use: {
                     loader: 'babel-loader',
                     options: {
-                        presets: ['@babel/preset-env']
+                        presets: [
+                            ['@babel/preset-env',
+                                { "regenerator": true }
+                            ]
+                        ]
                     }
                 }
             },

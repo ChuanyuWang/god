@@ -34,6 +34,10 @@ module.exports = {
         vue: 'Vue'
     },
     module: {
+        // Prevent webpack from parsing any files matching the given regular expression(s). 
+        // Ignored files should not have calls to import, require, define or any other importing mechanism. 
+        // This can boost build performance when ignoring large libraries.
+        noParse: /jquery/,
         rules: [
             {
                 test: /\.css$/,
@@ -59,6 +63,7 @@ module.exports = {
             },
             {
                 test: /\.j1s$/,
+                include: path.resolve(__dirname, 'src'),
                 exclude: /(node_modules|bower_components)/,
                 use: {
                     loader: 'babel-loader',

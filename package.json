@@ -86,7 +86,8 @@
       "./*.js"
     ],
     "env": {
-      "NODE_ENV": "development"
+      "NODE_ENV": "development",
+      "HOTRELOAD": true
     },
     "delay": "500"
   }

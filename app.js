@@ -48,13 +48,12 @@ app.use(express.urlencoded({
     extended: true
 }));
 
-// Tell express to use the webpack-dev-middleware and use the webpack.config.js
-// configuration file as a base.
-if (app.locals.ENV_DEVELOPMENT) {
-    console.log("1111111 " + app.get('env'))
+// Load the webpack-dev-middleware to support hot reload if it's enabled
+if (app.locals.ENV_DEVELOPMENT && process.env.HOTRELOAD === "true") {
+    console.log("[HotReload] webpack-dev-middleware is loaded");
     const webpack = require('webpack');
     const webpackDevMiddleware = require('webpack-dev-middleware');
-    const config = require('./webpack.config.js');
+    const config = require('./webpack.config.js'); // load dev webpack configuration
     const compiler = webpack(config);
     app.use(webpackDevMiddleware(compiler, {
         publicPath: config.output.publicPath,

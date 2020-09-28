@@ -24,6 +24,7 @@ module.exports = {
     },
     resolve: {
         extensions: ['.js', '.vue', '.json'],
+        //Create aliases to import or require certain modules more easily.
         alias: {
             //vue: 'vue/dist/vue.min.js'
         }

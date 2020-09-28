@@ -6,10 +6,10 @@
 var i18nextplugin = require('./locales/i18nextplugin');
 // Must use .default when require vue component, refer to https://github.com/vuejs/vue-loader/issues/1172
 var app = require('./components/test-console.vue').default;
-var jq = require('jquery');
 
 // DOM Ready =============================================================
-jq(document).ready(function() {
+$(function() {
+    // Handler for .ready() called.
     init();
 
     // bootstrap the test console panel

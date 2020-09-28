@@ -5,19 +5,22 @@
  */
 var i18nextplugin = require('./locales/i18nextplugin');
 // Must use .default when require vue component, refer to https://github.com/vuejs/vue-loader/issues/1172
-var app = require('./components/test-console.vue').default;
+var App = require('./components/test-console.vue').default;
+//import App from './components/test-console.vue';
 
 // DOM Ready =============================================================
 $(function() {
     // Handler for .ready() called.
     init();
 
-    // bootstrap the test console panel
+    /* bootstrap the test console panel
     new Vue({
         el: '#app', render: function(h) {
             return h(app);
         }
     });
+    */
+    new Vue({ el: '#app', components: { App }, template: "<app/>" });
 });
 
 // Functions =============================================================

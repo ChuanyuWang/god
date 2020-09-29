@@ -4,20 +4,17 @@ const VueLoaderPlugin = require('vue-loader/lib/plugin');
 const TerserPlugin = require('terser-webpack-plugin');
 const pkg = require('./package.json');
 
-var hotMiddlewareScript = 'webpack-hot-middleware/client?path=/__webpack_hmr&timeout=20000&reload=true';
-
 
 module.exports = {
     mode: process.env.NODE_ENV || 'production',
     target: "web",
     // Avoid inline-*** and eval-*** use in production as they can increase bundle size and reduce the overall performance.
     devtool: 'source-map',
-    entry: [
-        //'webpack-hot-middleware/client?path=/__webpack_hmr&timeout=20000',
-        // And then the actual application
-        './src/js/main.js'
-        //main: ['./src/js/main.js', hotMiddlewareScript]
-    ],
+    entry: {
+        // Multi Page Application
+        main: './src/js/main.js',
+        test: './src/js/test.js'
+    },
 
     output: {
         filename: '[name].js',

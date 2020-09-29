@@ -28,6 +28,14 @@ router.get('/', loginLimiter, function(req, res) {
     });
 });
 
+/* GET test page. */
+router.get('/test', loginLimiter, function(req, res) {
+    res.render('test', {
+        title: res.__('title2'),
+        navTitle: res.__('title2')
+    });
+});
+
 /*
  * 根据code获取微信用户的openid
  */

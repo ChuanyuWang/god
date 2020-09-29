@@ -2,20 +2,19 @@ const path = require('path');
 const webpack = require('webpack');
 const VueLoaderPlugin = require('vue-loader/lib/plugin');
 
-//var hotMiddlewareScript = 'webpack-hot-middleware/client?path=/__webpack_hmr&timeout=20000&reload=true';
+// timeout: The time to wait after a disconnection before attempting to reconnect
+const hotMiddlewareScript = 'webpack-hot-middleware/client?path=/__webpack_hmr&timeout=2000&reload=true';
 
 
 module.exports = {
     mode: process.env.NODE_ENV || 'development',
     target: "web",
     devtool: "eval-source-map",
-    entry: [
-        // timeout: The time to wait after a disconnection before attempting to reconnect
-        'webpack-hot-middleware/client?path=/__webpack_hmr&timeout=2000',
-        // And then the actual application
-        './src/js/main.js'
-        //main: ['./src/js/main.js', hotMiddlewareScript]
-    ],
+    entry: {
+        // Multi Page Application
+        main: ['./src/js/main.js', hotMiddlewareScript],
+        test: ['./src/js/test.js', hotMiddlewareScript]
+    },
 
     output: {
         filename: '[name].js',

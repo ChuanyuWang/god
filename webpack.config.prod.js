@@ -20,7 +20,7 @@ module.exports = {
     ],
 
     output: {
-        filename: 'main.js',
+        filename: '[name].js',
         path: path.resolve(__dirname, 'public/js'),
         publicPath: '/js/'
     },

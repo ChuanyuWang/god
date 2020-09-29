@@ -56,6 +56,7 @@ if (app.locals.ENV_DEVELOPMENT && process.env.HOTRELOAD === "true") {
     const config = require('./webpack.config.js'); // load dev webpack configuration
     const compiler = webpack(config);
     app.use(webpackDevMiddleware(compiler, {
+        // router "/js/*" requset to this middleware (in-memory)
         publicPath: config.output.publicPath,
     }));
 

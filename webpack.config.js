@@ -10,7 +10,8 @@ module.exports = {
     target: "web",
     devtool: "eval-source-map",
     entry: [
-        'webpack-hot-middleware/client?path=/__webpack_hmr&timeout=20000',
+        // timeout: The time to wait after a disconnection before attempting to reconnect
+        'webpack-hot-middleware/client?path=/__webpack_hmr&timeout=2000',
         // And then the actual application
         './src/js/main.js'
         //main: ['./src/js/main.js', hotMiddlewareScript]

@@ -59,8 +59,12 @@ if (app.locals.ENV_DEVELOPMENT && process.env.HOTRELOAD === "true") {
         publicPath: config.output.publicPath,
     }));
 
+    /**
+     * path - The path which the middleware will serve the event stream on, must match the client setting
+     * heartbeat - How often to send heartbeat updates to the client to keep the connection alive. Should be less than the client's timeout setting - usually set to half its value.
+     */
     app.use(require("webpack-hot-middleware")(compiler, {
-        log: console.log, path: '/__webpack_hmr', heartbeat: 10 * 1000
+        log: console.log, path: '/__webpack_hmr', heartbeat: 1000
     }));
 }
 

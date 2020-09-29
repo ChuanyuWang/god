@@ -3,6 +3,7 @@ const webpack = require('webpack');
 const VueLoaderPlugin = require('vue-loader/lib/plugin');
 const TerserPlugin = require('terser-webpack-plugin');
 const pkg = require('./package.json');
+const ESLintPlugin = require('eslint-webpack-plugin');
 
 
 module.exports = {
@@ -63,12 +64,6 @@ module.exports = {
                 }
             },
             {
-                enforce: 'pre',
-                test: /\.(js|vue)$/,
-                exclude: /node_modules/,
-                loader: 'eslint-loader'
-            },
-            {
                 test: /\.j1s$/,
                 include: path.resolve(__dirname, 'src'),
                 exclude: /(node_modules|bower_components)/,
@@ -113,7 +108,8 @@ module.exports = {
         // make jquery available for all modules
         new webpack.ProvidePlugin({
             $: 'jquery'
-        })
+        }),
+        new ESLintPlugin()
     ],
     optimization: {
         minimize: true,

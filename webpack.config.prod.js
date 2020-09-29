@@ -42,7 +42,15 @@ module.exports = {
                 test: /\.css$/,
                 use: [
                     'vue-style-loader',
-                    'css-loader'
+                    {
+                        loader: 'css-loader',
+                        options: {
+                            // disable exporting css module as esModule, 
+                            // because vue-style-loader load css module as commonjs
+                            esModule: false,
+                            sourceMap: false
+                        }
+                    }
                 ],
             }, {
                 test: /\.vue$/,
@@ -86,7 +94,13 @@ module.exports = {
                 test: /\.less$/,
                 use: [
                     'vue-style-loader',
-                    'css-loader',
+                    {
+                        loader: 'css-loader',
+                        options: {
+                            esModule: false,
+                            sourceMap: false
+                        },
+                    },
                     'less-loader'
                 ]
             }

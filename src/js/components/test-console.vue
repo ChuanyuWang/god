@@ -1,11 +1,10 @@
 <style lang="less">
-
 </style>
 
 <template lang="pug">
-div.container
-  div(style='width:100%;height:400px') {{result}}
-  button.btn.btn-primary(@click='createGame', type='button') Create
+.container
+  div(style="width:100%;height:400px") {{ result }}
+  button.btn.btn-primary(@click="createGame", type="button") Create
 </template>
 
 <script>

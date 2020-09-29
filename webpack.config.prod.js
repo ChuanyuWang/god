@@ -1,6 +1,8 @@
 const path = require('path');
 const webpack = require('webpack');
 const VueLoaderPlugin = require('vue-loader/lib/plugin');
+const TerserPlugin = require('terser-webpack-plugin');
+const pkg = require('./package.json');
 
 var hotMiddlewareScript = 'webpack-hot-middleware/client?path=/__webpack_hmr&timeout=20000&reload=true';
 
@@ -103,7 +105,25 @@ module.exports = {
         })
     ],
     optimization: {
-        minimize: true
+        minimize: true,
+        minimizer: [
+            new TerserPlugin(),
+            new webpack.BannerPlugin({
+                entryOnly: false,
+                banner: (obj) => {
+                    const today = new Date();
+                    const year = today.getFullYear();
+
+                    let banner = `${pkg.name}\n`;
+                    banner += `Version: ${pkg.version}\n`;
+                    banner += `Copyright ©2017-${year} ${pkg.author}\n\n`;
+                    banner += `File: [filebase]\n`;
+                    banner += `Path: [file]`;
+
+                    return banner;
+                }
+            })
+        ],
     },
     performance: {
         hints: "warning"
